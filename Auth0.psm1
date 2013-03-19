@@ -304,9 +304,9 @@ function Enable-Auth0 {
       exit;
   }
 
-  (new-object net.webclient).DownloadString("https://raw.github.com/auth0/sharepoint-auth0/master/login.aspx") | foreach { $_ -replace "client=[^&]*", "client=$clientId" } | Set-Content .\$clientId.aspx
+  (new-object net.webclient).DownloadString("https://raw.github.com/auth0/sharepoint-auth0/master/login.aspx") | foreach { $_ -replace "client=[^&]*", "client=$clientId" } | Set-Content .\"$clientId.aspx"
 
-  Copy-Item $clientId.aspx "$loginPageFolder\$clientId.aspx"
+  Copy-Item "$clientId.aspx" "$loginPageFolder\$clientId.aspx"
 
   $settings = $webApp.IisSettings.get_item("Default");
   $settings.ClaimsAuthenticationRedirectionUrl = "~/_login/$clientId.aspx";
