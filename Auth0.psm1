@@ -28,18 +28,18 @@ function GetCertificate { param ([xml]$fedMetadata)
 }
 
 
-function Enable-Auth0
+function Enable-Auth0 {
+    [CmdletBinding()]
+    Param
     (
-    [string]$auth0Domain = $(throw "Domain is required. E.g.: mycompany.auth0.com"),
-    [string]$clientId = $(throw "Client id is required and it can be found in the dashboard"),
-    [string]$webAppUrl = $(throw "SharePoint Web Application URL is required. E.g.: http://sp2010app"),
-    [string]$identifierClaimType = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
-    [string[]]$claims = "Email Address|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", # Claims to Map. Format: <DisplayName>|<ClaimType>
-    [string]$certPath, # signing certificate optional
-    [string[]]$additionalCertPaths  # Path to certificates in the chain
+      [string]$auth0Domain = $(throw "Domain is required. E.g.: mycompany.auth0.com"),
+      [string]$clientId = $(throw "Client id is required and it can be found in the dashboard"),
+      [string]$webAppUrl = $(throw "SharePoint Web Application URL is required. E.g.: http://sp2010app"),
+      [string]$identifierClaimType = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
+      [string[]]$claims = "Email Address|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", # Claims to Map. Format: <DisplayName>|<ClaimType>
+      [string]$certPath, # signing certificate optional
+      [string[]]$additionalCertPaths  # Path to certificates in the chain
     )
-{
-
     
   if ($additionalCertPaths) 
   {
@@ -304,18 +304,18 @@ function Enable-Auth0
       exit;
   }
 
-  Get-Content .\login.aspx | foreach { $_ -replace "client=[^&]*", "client=$clientId" } | Set-Content .\auth0.aspx
+  (new-object net.webclient).DownloadString("https://raw.github.com/auth0/sharepoint-auth0/master/login.aspx") | foreach { $_ -replace "client=[^&]*", "client=$clientId" } | Set-Content .\$clientId.aspx
 
-  Copy-Item auth0.aspx "$loginPageFolder\auth0.aspx"
+  Copy-Item $clientId.aspx "$loginPageFolder\$clientId.aspx"
 
   $settings = $webApp.IisSettings.get_item("Default");
-  $settings.ClaimsAuthenticationRedirectionUrl = "~/_login/auth0.aspx";
+  $settings.ClaimsAuthenticationRedirectionUrl = "~/_login/$clientId.aspx";
   $webApp.Update();
 
   $webConfigPath = [io.path]::combine($settings.Path.FullName, "web.config");
   $webconfig = [xml](get-content $webConfigPath);
   $webconfig.Save($webConfigPath + ".backup");
-  $webconfig.configuration.'system.web'.authentication.forms.loginUrl = "~/_login/auth0.aspx"
+  $webconfig.configuration.'system.web'.authentication.forms.loginUrl = "~/_login/$clientId.aspx"
   $webconfig.Save($webConfigPath);  
 
 
@@ -325,11 +325,12 @@ function Enable-Auth0
   Write-Host "SharePoint Web Application '$webAppUrl' configured successfully with Auth0."
 }
 
-function Disable-Auth0
+function Disable-Auth0 {
+    [CmdletBinding()]
+    Param
     (
     [string]$webAppUrl = $(throw "SharePoint Web Application url is required. E.g.: http://blah")
     )
-{
     
   # check if SP snapin exists in the machine
   if ( (Get-PSSnapin -Name Microsoft.Sharepoint.Powershell -Registered -ErrorAction SilentlyContinue) -eq $null )
