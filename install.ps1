@@ -7,7 +7,7 @@ New-Item -Type Container -Force -path $auth0path | out-null
 Write-Host "Downloading and installing"
 (new-object net.webclient).DownloadString("https://raw.github.com/auth0/sharepoint-auth0/master/Auth0.psm1") | Out-File "$auth0path\Auth0.psm1" 
 
-if (Get-Module "Auth0") Remove-Module "Auth0"
+if (Get-Module "Auth0") { Remove-Module "Auth0" }
 
 Import-Module "$auth0path\Auth0.psm1"
 
