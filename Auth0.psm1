@@ -51,7 +51,7 @@ function Enable-Auth0 {
   if ( (Get-PSSnapin -Name Microsoft.Sharepoint.Powershell -Registered -ErrorAction SilentlyContinue) -eq $null )
   {
       Write-Error "This PowerShell script requires the Microsoft.Sharepoint.Powershell Snap-In. Try executing it from the SharePoint 2010 server"
-      exit 1;
+      return;
   }
 
   # check if SP snapin is already loaded, if not load it
@@ -66,7 +66,7 @@ function Enable-Auth0 {
   if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) -eq $false) 
   {
       Write-Error "This PowerShell script requires Administrator privilieges. Try opening a PowerShell console by doing right click -> 'Run as Administrator'"
-      exit 1;
+      return;
   }
 
   # check if the user is SPShell Admin
@@ -75,7 +75,7 @@ function Enable-Auth0 {
       $error = "This PowerShell script requires priviliege to execute SharePoint CmdLets. Try adding the user '$($currentPrincipal.Identity.Name)' as SPShellAdmin.
                   To do this run the following command Add-SPShellAdmin $($currentPrincipal.Identity.Name)"
       Write-Error $error
-      exit 1;
+      return;
   }
 
   $realm = "urn:$clientId";
@@ -107,7 +107,7 @@ function Enable-Auth0 {
     if ($reservedClaimTypes -contains $ct) {
       $error = "SharePoint reserved claim type $ct can't be used."
             Write-Error $error
-            exit 1; 
+            return; 
     }
   }
 
@@ -336,7 +336,7 @@ function Disable-Auth0 {
   if ( (Get-PSSnapin -Name Microsoft.Sharepoint.Powershell -Registered -ErrorAction SilentlyContinue) -eq $null )
   {
       Write-Error "This PowerShell script requires the Microsoft.Sharepoint.Powershell Snap-In. Try executing it from the SharePoint 2010 server"
-      exit 1;
+      return;
   }
 
   # check if SP snapin is already loaded, if not load it
@@ -351,7 +351,7 @@ function Disable-Auth0 {
   if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) -eq $false) 
   {
       Write-Error "This PowerShell script requires Administrator privilieges. Try opening a PowerShell console by doing right click -> 'Run as Administrator'"
-      exit 1;
+      return;
   }
 
   # check if the user is SPShell Admin
@@ -360,7 +360,7 @@ function Disable-Auth0 {
       $error = "This PowerShell script requires priviliege to execute SharePoint CmdLets. Try adding the user '$($currentPrincipal.Identity.Name)' as SPShellAdmin.
                   To do this run the following command Add-SPShellAdmin $($currentPrincipal.Identity.Name)"
       Write-Error $error
-      exit 1;
+      return;
   }
 
 # check if the application exists
