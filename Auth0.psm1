@@ -87,9 +87,9 @@ function GetWebApp {
 		$error = "There is no SharePoint application at this url '$webAppUrl'. The existing applications are: `r`n $apps" 
 		Write-Error $error
 	}
-    else {
-        Write-Verbose "App exists"
-    }
+    	else {
+        	Write-Verbose "App exists"
+    	}
 	
 	$webApp;
 }
@@ -97,9 +97,9 @@ function GetWebApp {
 # module members
 
 function Enable-Auth0 {
-    [CmdletBinding()]
-    Param
-    (
+    	[CmdletBinding()]
+    	Param
+	(
 		[string]$auth0Domain = $(throw "Domain is required. E.g.: mycompany.auth0.com"),
 		[string]$clientId = $(throw "Client id is required and it can be found in the dashboard"),
 		[string]$webAppUrl = $(throw "SharePoint Web Application URL is required. E.g.: http://sp2010app"),
@@ -107,7 +107,7 @@ function Enable-Auth0 {
 		[string[]]$claims = "Email Address|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", # Claims to Map. Format: <DisplayName>|<ClaimType>
 		[string]$certPath, # signing certificate optional
 		[string[]]$additionalCertPaths  # Path to certificates in the chain
-    )
+    	)
     
 	# constants
 	$fedMetadataUrl = "http://$auth0Domain/wsfed/$clientId/FederationMetadata/2007-06/FederationMetadata.xml"
@@ -178,8 +178,8 @@ function Enable-Auth0 {
 
 		if (-not $rootCertFound) {
 			$error = "The certificate trust chain is incomplete.
-					  The certificate with the following SubjectName: $($tempCert.Issuer) was not found on the additional certificates parameter.
-					  Make sure you are including the whole trust chain path public keys in the additionalCertPaths parameter"
+				  The certificate with the following SubjectName: $($tempCert.Issuer) was not found on the additional certificates parameter.
+				  Make sure you are including the whole trust chain path public keys in the additionalCertPaths parameter"
 		  
 			Write-Error $error
 			exit
@@ -376,11 +376,11 @@ function Enable-Auth0 {
 }
 
 function Disable-Auth0 {
-    [CmdletBinding()]
-    Param
-    (
+	[CmdletBinding()]
+    	Param
+    	(
 		[string]$webAppUrl = $(throw "SharePoint Web Application url is required. E.g.: http://sp2010app")
-    )
+    	)
     
 	if (-not $webAppUrl.EndsWith("/")) { 
 		$webAppUrl += "/" 
@@ -431,7 +431,7 @@ function Disable-Auth0 {
 
 function Enable-ClaimsProvider {
 	[CmdletBinding()]
-    Param()
+    	Param()
 	
 	$modulespath = ($env:psmodulepath -split ";")[0]
 	$auth0path = "$modulespath\Auth0"
@@ -469,7 +469,7 @@ function Enable-ClaimsProvider {
 
 function Disable-ClaimsProvider {
 	[CmdletBinding()]
-    Param( )
+    	Param( )
 	
 	$solutionName = "auth0.claimsprovider.wsp"
 	$spSolution = Get-SPSolution $solutionName -ErrorAction SilentlyContinue
