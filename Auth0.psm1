@@ -403,5 +403,71 @@ if ($webApp -eq $null) {
   Remove-PSSnapin Microsoft.Sharepoint.Powershell
 }
 
+function Enable-ClaimsProvider {
+	[CmdletBinding()]
+    Param
+    (
+    )
+	
+	$modulespath = ($env:psmodulepath -split ";")[0]
+	$auth0path = "$modulespath\Auth0"
+
+	$solutionName = "auth0.claimsprovider.wsp"
+	$claimsProviderInternalName = "Federated Users (Auth0)"
+	$spSolution = Get-SPSolution $solutionName -ErrorAction SilentlyContinue
+	$wspFilePath = "$auth0path\$solutionName"
+
+	if (-not (Get-SPTrustedIdentityTokenIssuer Auth0 -ErrorAction SilentlyContinue)) {
+		Write-Warning "Auth0 is not enabled. Please use Enable-Auth0 command or read the documentation: https://app.auth0.com/#/add-ons/sharepoint"
+		return;
+	}
+
+	if (-not $spSolution -or -not $spSolution.Added) {
+		Write-Host "Adding claims provider solution"
+		$spSolution = Add-SPSolution -LiteralPath $wspFilePath
+	}
+
+	if ($spSolution.DeploymentState -eq "NotDeployed") {
+		Write-Host "Installing claims provider solution. THIS CAN TAKE MINUTES. Please wait..."
+		Install-SPSolution -Identity $solutionName -GACDeployment
+	}
+	else {
+		Write-Host "Updating claims provider solution. THIS CAN TAKE MINUTES. Please wait..."
+		Update-SPSolution -identity $solutionName -LiteralPath $wspFilePath -GACDeployment
+	}
+
+	do { }
+	while ((Get-SPSolution $solutionName).JobExists)
+
+	Write-Host "Associating SP Trusted Identity Token Issuer (Auth0) with the claims provider ($claimsProviderInternalName)"
+	Set-SPTrustedIdentityTokenIssuer -identity Auth0 -ClaimProvider $claimsProviderInternalName
+}
+
+function Disable-ClaimsProvider {
+	[CmdletBinding()]
+    Param( )
+	
+	$solutionName = "auth0.claimsprovider.wsp"
+	$spSolution = Get-SPSolution $solutionName -ErrorAction SilentlyContinue
+
+	if ($spSolution) {
+		if ($spSolution.DeploymentState -ne "NotDeployed") {
+			Write-Host "Uninstalling claims provider solution. THIS CAN TAKE MINUTES. Please wait..."
+			Uninstall-SPSolution -Identity $solutionName
+			
+			do { }
+			while ((Get-SPSolution $solutionName).JobExists)
+		}
+		
+		Write-Host "Removing claims provider solution. THIS CAN TAKE MINUTES. Please wait..."
+		Remove-SPSolution -Identity $solutionName
+		
+		do { }
+		while (Get-SPSolution $solutionName -ErrorAction SilentlyContinue)
+	}
+}
+
 Export-ModuleMember Enable-Auth0
 Export-ModuleMember Disable-Auth0
+Export-ModuleMember Enable-ClaimsProvider
+Export-ModuleMember Disable-ClaimsProvider
