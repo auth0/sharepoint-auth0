@@ -478,8 +478,8 @@ function Enable-ClaimsProvider {
 	Set-SPTrustedIdentityTokenIssuer -identity $identityTokenIssuerName -ClaimProvider $claimsProviderInternalName
 	
 	Write-Host "Done. Please, go to SharePoint Central Admin -> Security:"
-	Write-Host "`t1. Under General Security section, click on 'Configure Auth0 Claims Provider'"
-	Write-Host "`t2. Set the required configuration parameters (like domain, client ID/Secret)"
+	Write-Host "1. Under General Security section, click on 'Configure Auth0 Claims Provider'"
+	Write-Host "2. Set the required configuration parameters (like domain, client ID/Secret)"
 }
 
 function Disable-ClaimsProvider {
