@@ -442,7 +442,7 @@ function Disable-Auth0 {
 
 function Enable-ClaimsProvider {
 	[CmdletBinding()]
-    	Param()
+	Param()
 	
 	$modulespath = ($env:psmodulepath -split ";")[0]
 	$auth0path = "$modulespath\Auth0"
@@ -476,11 +476,15 @@ function Enable-ClaimsProvider {
 
 	Write-Host "Associating SP Trusted Identity Token Issuer (Auth0) with the claims provider ($claimsProviderInternalName)"
 	Set-SPTrustedIdentityTokenIssuer -identity $identityTokenIssuerName -ClaimProvider $claimsProviderInternalName
+	
+	Write-Host "Done. Please, go to SharePoint Central Admin -> Security:"
+	Write-Host "`t1. Under General Security section, click on 'Configure Auth0 Claims Provider'"
+	Write-Host "`t2. Set the required configuration parameters (like domain, client ID/Secret)"
 }
 
 function Disable-ClaimsProvider {
 	[CmdletBinding()]
-    	Param( )
+	Param( )
 	
 	$solutionName = "auth0.claimsprovider.wsp"
 	$spSolution = Get-SPSolution $solutionName -ErrorAction SilentlyContinue
