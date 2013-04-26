@@ -97,8 +97,8 @@ function GetWebApp {
 # module members
 
 function Enable-Auth0 {
-    	[CmdletBinding()]
-    	Param
+	[CmdletBinding()]
+	Param
 	(
 		[string]$auth0Domain = $(throw "Domain is required. E.g.: mycompany.auth0.com"),
 		[string]$clientId = $(throw "Client id is required and it can be found in the dashboard"),
@@ -107,7 +107,7 @@ function Enable-Auth0 {
 		[string[]]$claims = "Email Address|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", # Claims to Map. Format: <DisplayName>|<ClaimType>
 		[string]$certPath, # signing certificate optional
 		[string[]]$additionalCertPaths  # Path to certificates in the chain
-    	)
+	)
     
 	# constants
 	$fedMetadataUrl = "http://$auth0Domain/wsfed/$clientId/FederationMetadata/2007-06/FederationMetadata.xml"
@@ -216,11 +216,17 @@ function Enable-Auth0 {
 		}
 	}
 
+	$uri = New-Object System.Uri($webAppUrl)
+
 	if ($spti -eq $null) {
 		Write-Verbose "Creating the SPTrustedIdentityTokenIssuer"
 		Write-Verbose "New-SPTrustedIdentityTokenIssuer -Name '$identityTokenIssuerName' -Description 'Auth0 Federation Hub' -Realm '$realm' -ImportTrustCertificate '$($signingCert.SubjectName.Name)' -SignInUrl '$signInUrl' -ClaimsMappings '$(foreach ($m in $mappings) { $m.DisplayName + '|' + $m.InputClaimType } )' -IdentifierClaim '$identifierClaimType"
 	  
 		$spti = New-SPTrustedIdentityTokenIssuer -Name $identityTokenIssuerName -Description "Auth0 Federation Hub" -Realm $realm -ImportTrustCertificate $signingCert -SignInUrl $signInUrl -ClaimsMappings $mappings -IdentifierClaim $identifierClaimType
+		
+		$spti.DefaultProviderRealm = "";
+		$spti.ProviderRealms.add($uri, $realm)
+		$spti.Update()
 	}
 	else {
 		Write-Verbose "SPTrustedIdentityTokenIssuer '$identityTokenIssuerName' already exists"
@@ -280,30 +286,35 @@ function Enable-Auth0 {
 		$spti.Update()  
 
 		$spti | Set-SPTrustedIdentityTokenIssuer -SignInUrl $signInUrl
-		$uri = New-Object System.Uri($webAppUrl)
 			  
 		if (-not $isStsConfigured)  {
-			Write-Verbose "Adding ProviderRealms '$realm' to the webapp '$uri'" 
-			if ($spti.ProviderRealms.ContainsKey($webApp.Url)) { $spti.ProviderRealms.Remove($webApp.Url) } 
+			if ($spti.ProviderRealms.ContainsKey($webApp.Url)) { 
+				$spti.ProviderRealms.Remove($webApp.Url) 
+			} 
 		}
 		else {
 			Write-Verbose "ProviderRealms check for key -> '$($webApp.Url)' and not value -> '$realm'" 
 			$realmChanged = $spti.ProviderRealms.ContainsKey($webApp.Url) -and -not $spti.ProviderRealms.ContainsValue($realm);
-			Write-Verbose "Realm changed: '$($realmChanged)'"
 			
-			if ($realmChanged) { 
-				$spti.ProviderRealms.Remove($webApp.Url) 
+			if ($realmChanged) {
+				Write-Verbose "Realm changed: '$($realmChanged)'"
+				$spti.ProviderRealms.Remove($webApp.Url)
 			}
 		}
 		  
-		$spti.DefaultProviderRealm = $realm;
+		$spti.DefaultProviderRealm = "";
 		
 		try {
+			Write-Verbose "Adding ProviderRealms '$realm' to the webapp '$uri'" 
 			$spti.ProviderRealms.add($uri, $realm)
 			$spti.Update()  
 		}
 		catch {
 		}
+	}
+
+	foreach ($providerRealm in $spti.ProviderRealms.GetEnumerator()) {
+		Write-Verbose "Configured provider realm -> Uri: '$($providerRealm.Key)' - Realm: '$($providerRealm.Value)'"
 	}
 
 	# update WebApp to use Claims AuthN
@@ -377,10 +388,10 @@ function Enable-Auth0 {
 
 function Disable-Auth0 {
 	[CmdletBinding()]
-    	Param
-    	(
+	Param
+	(
 		[string]$webAppUrl = $(throw "SharePoint Web Application url is required. E.g.: http://sp2010app")
-    	)
+	)
     
 	if (-not $webAppUrl.EndsWith("/")) { 
 		$webAppUrl += "/" 
