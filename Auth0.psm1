@@ -444,6 +444,10 @@ function Enable-ClaimsProvider {
 	[CmdletBinding()]
 	Param()
 	
+	if (!(ValidCommonChecks)) {
+		exit;
+	}
+	
 	$modulespath = ($env:psmodulepath -split ";")[0]
 	$auth0path = "$modulespath\Auth0"
 
@@ -485,6 +489,10 @@ function Enable-ClaimsProvider {
 function Disable-ClaimsProvider {
 	[CmdletBinding()]
 	Param( )
+	
+	if (!(ValidCommonChecks)) {
+		exit;
+	}
 	
 	$solutionName = "auth0.claimsprovider.wsp"
 	$spSolution = Get-SPSolution $solutionName -ErrorAction SilentlyContinue
