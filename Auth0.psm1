@@ -380,9 +380,6 @@ function Enable-Auth0 {
 	$webconfig.configuration.'system.web'.authentication.forms.loginUrl = $redirectionUrl
 	$webconfig.Save($webConfigPath);  
 
-	# cleanup
-	Cleanup
-
 	Write-Host "SharePoint Web Application '$webAppUrl' configured successfully with $identityTokenIssuerName."
 }
 
@@ -435,9 +432,6 @@ function Disable-Auth0 {
 	$webconfig.Save($webConfigPath);  
 
 	Write-Host "The login page now is the default page."
-
-	# Cleanup
-	Cleanup
 }
 
 function Enable-ClaimsProvider {
