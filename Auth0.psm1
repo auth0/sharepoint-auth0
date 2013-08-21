@@ -480,7 +480,9 @@ function Enable-ClaimsProvider {
 	while ((Get-SPSolution $solutionName).JobExists)
 
 	Write-Host "Associating SP Trusted Identity Token Issuer (Auth0) with the claims provider ($claimsProviderInternalName)"
-	Set-SPTrustedIdentityTokenIssuer -identity $identityTokenIssuerName -ClaimProvider $claimsProviderInternalName
+	$spti = Get-SPTrustedIdentityTokenIssuer -identity $identityTokenIssuerName 
+	$spti.ClaimProviderName = $claimsProviderInternalName
+	$spti.Update();
 	
 	Write-Host "Done. Please, go to SharePoint Central Admin -> Security:"
 	Write-Host "1. Under General Security section, click on 'Configure Auth0 Claims Provider'"
