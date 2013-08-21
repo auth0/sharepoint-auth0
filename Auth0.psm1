@@ -1,6 +1,7 @@
 # global constants
 $identityTokenIssuerName = "Auth0"
-
+$sharePoint2013Folder =  "$env:ProgramFiles\Common Files\Microsoft Shared\Web Server Extensions\15"
+	
 # helpers
 function GetFederationMetadata { 
 	param ([string]$url)
@@ -30,6 +31,10 @@ function GetCertificate {
 
 	$certb64 = $roleDescriptor.Node.KeyDescriptor.KeyInfo.X509Data.X509Certificate
 	$certb64;
+}
+
+function IsSharePoint2013 {
+        return test-path $sharePoint2013Folder
 }
 
 function ValidCommonChecks {
@@ -115,9 +120,12 @@ function Enable-Auth0 {
 	$reservedClaimTypes = @("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
 	$realm = "urn:$clientId"
 	$signInUrl = "https://$auth0Domain/wsfed"
-	$loginPageFolder =  "$env:ProgramFiles\Common Files\Microsoft Shared\Web Server Extensions\14\TEMPLATE\IDENTITYMODEL\LOGIN"
 	$loginPageResourceUrl = "https://raw.github.com/auth0/sharepoint-auth0/master/login.aspx"
 	$redirectionUrl = "~/_login/$clientId.aspx"  
+	$spversion = &{if (IsSharePoint2013) {"15"} else {"14"} }
+	$loginPageFolder =  "$env:ProgramFiles\Common Files\Microsoft Shared\Web Server Extensions\$spversion\TEMPLATE\IDENTITYMODEL\LOGIN"
+	
+	Write-Verbose "SharePoint Version: $spversion"
 
 	if ($additionalCertPaths) {
 		$additionalCertPaths = $additionalCertPaths | % { Resolve-Path $_ }
@@ -128,13 +136,13 @@ function Enable-Auth0 {
 	}
 
 	if (!(ValidCommonChecks)) {
-		exit;
+		return;
 	}
 
 	# check if the application exists
 	$webApp = GetWebApp ($webAppUrl)
 	if (-not $webApp) {
-		exit;
+		return;
 	}
 
 	# ensure that identifierClaimType is part of claims array
@@ -182,7 +190,7 @@ function Enable-Auth0 {
 				  Make sure you are including the whole trust chain path public keys in the additionalCertPaths parameter"
 		  
 			Write-Error $error
-			exit
+			return
 		}
 
 		$certs += $additionalCert
@@ -283,10 +291,9 @@ function Enable-Auth0 {
 		}
 
 		$spti.SigningCertificate = $signingCert
+		$spti.ProviderUri = $signInUrl
 		$spti.Update()  
-
-		$spti | Set-SPTrustedIdentityTokenIssuer -SignInUrl $signInUrl
-			  
+	  
 		if (-not $isStsConfigured)  {
 			if ($spti.ProviderRealms.ContainsKey($webApp.Url)) { 
 				$spti.ProviderRealms.Remove($webApp.Url) 
@@ -362,7 +369,7 @@ function Enable-Auth0 {
 	# login page
 	if (-not (Test-Path($loginPageFolder))) {
 		Write-Error "The SharePoint 2010 folder '$loginPageFolder' could not be found"
-		exit;
+		return;
 	}
 
 	(new-object net.webclient).DownloadString($loginPageResourceUrl) | foreach { $_ -replace "client=[^&]*", "client=$clientId" } | Set-Content .\"$clientId.aspx"
@@ -395,13 +402,13 @@ function Disable-Auth0 {
 	}
 
 	if (!(ValidCommonChecks)) {
-		exit;
+		return;
 	}
 
 	# check if the application exists
 	$webApp = GetWebApp ($webAppUrl)
 	if (-not $webApp) {
-		exit;
+		return;
 	}
 
 	$windows = New-SPAuthenticationProvider
@@ -439,7 +446,7 @@ function Enable-ClaimsProvider {
 	Param()
 	
 	if (!(ValidCommonChecks)) {
-		exit;
+		return;
 	}
 	
 	$modulespath = ($env:psmodulepath -split ";")[0]
@@ -485,7 +492,7 @@ function Disable-ClaimsProvider {
 	Param( )
 	
 	if (!(ValidCommonChecks)) {
-		exit;
+		return;
 	}
 	
 	$solutionName = "auth0.claimsprovider.wsp"
@@ -512,3 +519,4 @@ Export-ModuleMember Enable-Auth0
 Export-ModuleMember Disable-Auth0
 Export-ModuleMember Enable-ClaimsProvider
 Export-ModuleMember Disable-ClaimsProvider
+
