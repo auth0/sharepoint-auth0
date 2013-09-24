@@ -34,7 +34,7 @@ function GetCertificate {
 }
 
 function IsSharePoint2013 {
-        return test-path $sharePoint2013Folder
+	return test-path $sharePoint2013Folder
 }
 
 function ValidCommonChecks {
@@ -92,9 +92,9 @@ function GetWebApp {
 		$error = "There is no SharePoint application at this url '$webAppUrl'. The existing applications are: `r`n $apps" 
 		Write-Error $error
 	}
-    	else {
-        	Write-Verbose "App exists"
-    	}
+	else {
+		Write-Verbose "App exists"
+	}
 	
 	$webApp;
 }
