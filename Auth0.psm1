@@ -111,7 +111,8 @@ function Enable-Auth0 {
 		[string]$identifierClaimType = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
 		[string[]]$claims = "Email Address|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress", # Claims to Map. Format: <DisplayName>|<ClaimType>
 		[string]$certPath, # signing certificate optional
-		[string[]]$additionalCertPaths  # Path to certificates in the chain
+		[string[]]$additionalCertPaths,  # Path to certificates in the chain
+		[switch]$allowWindowsAuth = $false
 	)
     
 	# constants
@@ -342,6 +343,32 @@ function Enable-Auth0 {
 
 		Write-Verbose "Adding $identityTokenIssuerName to $webAppUrl as auth provider. THIS CAN TAKE MINUTES. Please wait..."
 		Set-SPWebApplication $webApp -AuthenticationProvider ($authProviders + $spti) -zone "Default"
+	}
+	
+	# check for Windows Authentication as authentication provider
+	$existingAuthProv = Get-SPAuthenticationProvider -webapplication $webApp -zone "Default"
+	$isWindowsAuthConfigured = $false
+	
+	Write-Verbose "Configured Authentication Providers:"
+	foreach ($authProv in $existingAuthProv) {
+		Write-Verbose "DisplayName: '$($authProv.DisplayName)', ClaimProviderName: '$($authProv.ClaimProviderName)', UseWindowsIntegratedAuthentication: '$($authProv.UseWindowsIntegratedAuthentication)'"
+		
+		if (($isWindowsAuthConfigured -eq $false) -and ($authProv.ClaimProviderName -eq 'AD')) {
+			$isWindowsAuthConfigured = $true
+		}
+	}
+	
+	if ($allowWindowsAuth) {
+		if ($isWindowsAuthConfigured -eq $false) {
+			Write-Verbose "Enabling Windows Authentication as Authentication Provider"
+			[array] $authProviders = $existingAuthProv
+			$windows = New-SPAuthenticationProvider
+			Set-SPWebApplication $webApp -AuthenticationProvider ($authProviders + $windows) -zone "Default"
+			$isWindowsAuthConfigured = $true
+		}
+		else {
+			Write-Verbose "Windows Authentication is already configured as Authentication Provider"
+		}
 	}
 
 	# add STS certificate and its certificate chain as trusted.
