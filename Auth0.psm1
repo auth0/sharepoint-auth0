@@ -19,6 +19,27 @@ function GetFederationMetadata {
 	return $fedMetadata
 }
 
+function SendResult {
+	param (
+		[string]$auth0Domain = $(throw "Domain is required. E.g.: mycompany.auth0.com"),
+		[string]$method = $(throw "method name is required. E.g.: Enable-Auth0"),
+		[string]$resultPath = ".\log.txt",
+		[string]$level = ""
+	)
+	
+	try {
+		$result = Get-Content $resultPath | Out-String
+		$result = $result.replace('\', '\\').replace('"', '""').replace("`r`n", "\\r\\n").replace("`t", "\\t")
+		$json = "{ `"app`": `"sharepoint`", `"level`": `"$level`", `"message`": `"$method`", `"description`": `"$result`" }"
+		$url = "https://$auth0Domain/drwatson"
+		
+		$webclient = New-Object System.Net.WebClient
+		$webclient.Headers.Add("Content-Type", "application/json")
+		$webclient.UploadStringAsync($url, $json)
+	}
+	catch [system.exception] { }
+}
+
 function GetCertificate {
 	param ([xml]$fedMetadata)
 
@@ -114,6 +135,8 @@ function Enable-Auth0 {
 		[string[]]$additionalCertPaths,  # Path to certificates in the chain
 		[switch]$allowWindowsAuth = $false
 	)
+	
+	Start-Transcript -path ".\log.txt" | Out-Null
     
 	# constants
 	$fedMetadataUrl = "http://$auth0Domain/wsfed/$clientId/FederationMetadata/2007-06/FederationMetadata.xml"
@@ -413,8 +436,13 @@ function Enable-Auth0 {
 	$webconfig.Save($webConfigPath + ".backup");
 	$webconfig.configuration.'system.web'.authentication.forms.loginUrl = $redirectionUrl
 	$webconfig.Save($webConfigPath);  
-
+	
 	Write-Host "SharePoint Web Application '$webAppUrl' configured successfully with $identityTokenIssuerName."
+	
+	Stop-Transcript | Out-Null
+	
+	# send results
+	SendResult -auth0Domain $auth0Domain -method "Enable-Auth0"
 }
 
 function Disable-Auth0 {
