@@ -136,6 +136,7 @@ function Enable-Auth0 {
 		[switch]$allowWindowsAuth = $false
 	)
 	
+	$error.Clear()
 	Start-Transcript -path ".\log.txt" | Out-Null
     
 	# constants
@@ -442,7 +443,8 @@ function Enable-Auth0 {
 	Stop-Transcript | Out-Null
 	
 	# send results
-	SendResult -auth0Domain $auth0Domain -method "Enable-Auth0"
+	if ($error.count -gt 0) { $level = "error" } else { $level = "verbose" }
+	SendResult -auth0Domain $auth0Domain -method "Enable-Auth0" -level $level
 }
 
 function Disable-Auth0 {
