@@ -29,7 +29,7 @@ function SendResult {
 	
 	try {
 		$result = Get-Content $resultPath | Out-String
-		$result = $result.replace('\', '\\').replace('"', '""').replace("`r", "\r").replace("`n", "\n").replace("`t", "\t")
+		$result = $result.replace('\', '\\').replace('"', "'").replace("`r", "\r").replace("`n", "\n").replace("`t", "\t")
 		$json = "{ `"app`": `"sharepoint`", `"level`": `"$level`", `"message`": `"$method`", `"description`": `"$result`" }"
 		$url = "https://$auth0Domain/drwatson"
 		
