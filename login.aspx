@@ -17,7 +17,7 @@
 			}
 
 			.signin .auth0 {
-				height: 450px;
+				height: 460px;
 			}
 
 			.signin .windows {
