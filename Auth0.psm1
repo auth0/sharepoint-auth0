@@ -23,14 +23,14 @@ function SendResult {
 	param (
 		[string]$auth0Domain = $(throw "Domain is required. E.g.: mycompany.auth0.com"),
 		[string]$method = $(throw "method name is required. E.g.: Enable-Auth0"),
-		[string]$level = $(throw "level is required. E.g.: verbose"),
+		[string]$resultLevel = $(throw "resultLevel is required. E.g.: verbose"),
 		[string]$resultPath = ".\log.txt"
 	)
 	
 	try {
 		$result = Get-Content $resultPath | Out-String
 		$result = $result.replace('\', '\\').replace('"', "'").replace("`r", "\r").replace("`n", "\n").replace("`t", "\t")
-		$json = "{ `"app`": `"sharepoint`", `"level`": `"$level`", `"message`": `"$method`", `"description`": `"$result`" }"
+		$json = "{ `"app`": `"sharepoint`", `"level`": `"$resultLevel`", `"message`": `"$method`", `"description`": `"$result`" }"
 		$url = "https://$auth0Domain/drwatson"
 		
 		$webclient = New-Object System.Net.WebClient
@@ -443,8 +443,8 @@ function Enable-Auth0 {
 	Stop-Transcript | Out-Null
 	
 	# send results
-	if ($error.count -gt 0) { $level = "error" } else { $level = "verbose" }
-	SendResult -auth0Domain $auth0Domain -method "Enable-Auth0" -level $level
+	if ($error.count -gt 0) { $resultLevel = "error" } else { $resultLevel = "verbose" }
+	SendResult -auth0Domain $auth0Domain -method "Enable-Auth0" -resultLevel $resultLevel
 }
 
 function Disable-Auth0 {
