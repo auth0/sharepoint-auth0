@@ -23,8 +23,8 @@ function SendResult {
 	param (
 		[string]$auth0Domain = $(throw "Domain is required. E.g.: mycompany.auth0.com"),
 		[string]$method = $(throw "method name is required. E.g.: Enable-Auth0"),
-		[string]$resultPath = ".\log.txt",
-		[string]$level = ""
+		[string]$level = $(throw "level is required. E.g.: verbose"),
+		[string]$resultPath = ".\log.txt"
 	)
 	
 	try {
