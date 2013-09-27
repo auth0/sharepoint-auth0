@@ -400,12 +400,12 @@ function Enable-Auth0 {
 	foreach ($tempCert in $certs) {
 		$certName = ([regex]'CN=([^,]+)').matches($tempCert.Subject) | foreach {$_.Groups[1].Value}
 		
-		Write-Verbose "Checking if certificate $certName exists in SP rusted root"  
+		Write-Verbose "Checking if certificate $certName exists in SP trusted root"  
 		$trustedRootAuthExists = $false
 		
 		foreach ($trustedRootAuth in $existingTrustedRootAuth) {
 			if ($trustedRootAuth.Name -eq $certName) {
-				Write-Verbose "Certificate $certName exists in SP rusted root"  
+				Write-Verbose "Certificate $certName exists in SP trusted root"  
 				$trustedRootAuthExists = $true
 				break
 			}
@@ -427,9 +427,17 @@ function Enable-Auth0 {
 
 	Copy-Item "$clientId.aspx" "$loginPageFolder\$clientId.aspx"
 
-	$settings = $webApp.IisSettings.get_item("Default");
-	$settings.ClaimsAuthenticationRedirectionUrl = $redirectionUrl;
-	$webApp.Update();
+	try {
+		$settings = $webApp.IisSettings.get_item("Default");
+		$settings.ClaimsAuthenticationRedirectionUrl = $redirectionUrl;
+		$webApp.Update();
+	}
+	catch { 
+		# TODO: investigate the error in SP 2013
+		if (!(IsSharePoint2013)) {
+			write-host $_.Exception.Message
+		}
+	}
 
 	# backup webApp web.config
 	$webConfigPath = [io.path]::combine($settings.Path.FullName, "web.config");
