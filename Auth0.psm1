@@ -23,7 +23,7 @@ function SendResult {
 	param (
 		[string]$auth0Domain = $(throw "Domain is required. E.g.: mycompany.auth0.com"),
 		[string]$method = $(throw "method name is required. E.g.: Enable-Auth0"),
-		[string]$resultLevel = $(throw "resultLevel is required. E.g.: verbose"),
+		[string]$resultLevel = "verbose",
 		[string]$resultPath = ".\log.txt"
 	)
 	
@@ -136,7 +136,8 @@ function Enable-Auth0 {
 		[switch]$allowWindowsAuth = $false
 	)
 	
-	$error.Clear()
+	if ($PSBoundParameters['Verbose']) { $resultLevel = "verbose" } else { $resultLevel = "info" }
+	
 	Start-Transcript -path ".\log.txt" | Out-Null
     
 	# constants
@@ -435,7 +436,7 @@ function Enable-Auth0 {
 	catch { 
 		# TODO: investigate the error in SP 2013
 		if (!(IsSharePoint2013)) {
-			write-host $_.Exception.Message
+			throw $_.Exception
 		}
 	}
 
@@ -451,7 +452,6 @@ function Enable-Auth0 {
 	Stop-Transcript | Out-Null
 	
 	# send results
-	if ($error.count -gt 0) { $resultLevel = "error" } else { $resultLevel = "verbose" }
 	SendResult -auth0Domain $auth0Domain -method "Enable-Auth0" -resultLevel $resultLevel
 }
 
@@ -586,4 +586,3 @@ Export-ModuleMember Enable-Auth0
 Export-ModuleMember Disable-Auth0
 Export-ModuleMember Enable-ClaimsProvider
 Export-ModuleMember Disable-ClaimsProvider
-
