@@ -452,6 +452,7 @@ function Enable-Auth0 {
 	Stop-Transcript | Out-Null
 	
 	# send results
+	if ($error.count -gt 0) { $resultLevel = "error" }
 	SendResult -auth0Domain $auth0Domain -method "Enable-Auth0" -resultLevel $resultLevel
 }
 
