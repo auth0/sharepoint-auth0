@@ -434,10 +434,6 @@ function Enable-Auth0 {
 		$webApp.Update();
 	}
 	catch { 
-		# TODO: investigate the error in SP 2013
-		if (!(IsSharePoint2013)) {
-			throw $_.Exception
-		}
 	}
 
 	# backup webApp web.config
