@@ -4,69 +4,43 @@
 		<title>SharePoint Login</title>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<meta name="apple-mobile-web-app-capable" content="yes" />
-		<style type="text/css">
-			.signin {
-				position: absolute;
-				top: 50%;
-				left: 50%;
-				width: 400px;
-				height: 530px;
-				margin-left: -200px;
-				margin-top: -265px;
-			}
-
-			.signin .auth0 {
-				height: 460px;
-			}
-
-			.signin .windows {
-				font-family: sans-serif;
-				text-align: center;
-				margin: 20px auto;
-				color: rgb(109, 109, 109);
-			}
-
-			.signin .windows a {
-				color: rgb(109, 109, 109);
-				font-weight: bold;
-			}
-		</style>
+		<meta name="apple-mobile-web-app-capable" content="yes" />			
 	</head>
-	<body> 
-	<div class="signin">
-		<div class="windows">
-			Sign In using <a id="windows-signin-link" href="#">Windows Authentication</a> or...
-		</div>
-		<div class="auth0" id="auth0-signin"></div>
-	</div>
-	<script type="text/javascript">
-		function getParameterByName(name) {
-			name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-			var regexS = "[\\?&]" + name + "=([^&#]*)";
-			var regex = new RegExp(regexS);
-			var results = regex.exec(window.location.search);
-			if (results == null)
-				return "";
-			else
-				return decodeURIComponent(results[1].replace(/\+/g, " "));
-		}
+	<body>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+		<script src="https://d19p4zemcycm7a.cloudfront.net/w2/auth0-widget-2.2.min.js"></script>
 		
-		(function() {
-			var a0 = document.createElement('script'); a0.type = 'text/javascript';
-			a0.src = 'https://sdk.auth0.com/auth0.js#client=REPLACE_WITH_CLIENT_ID&protocol=wsfed&container=auth0-signin&state=' + getParameterByName('Source');
-			var s = document.getElementsByTagName('script')[0];
-			s.parentNode.insertBefore(a0, s);
-		})();
-	</script>
-	<script type="text/javascript">
-		window.onload = function () {
-			window.Auth0.ready(function() {
-				window.Auth0.signIn({ onestep: true, theme: 'static', standalone: true });
+		<script type="text/javascript">
+			function getParameterByName (name) {
+				name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+				var regexS = "[\\?&]" + name + "=([^&#]*)";
+				var regex = new RegExp(regexS);
+				var results = regex.exec(window.location.search);
+				if (results == null) return "";
+				else return decodeURIComponent(results[1].replace(/\+/g, " "));
+			}
+	
+			var allowWindowsAuth = true;
+			var auth0 = new Auth0Widget({
+				domain:       'YOUR_AUTH0_DOMAIN',
+				clientID:     'YOUR_CLIENT_ID',
+				callbackURL:  location.origin + '/_trust/'
 			});
-			
-			document.getElementById('windows-signin-link').href = '/_windows/default.aspx?ReturnUrl=/_layouts/Authenticate.aspx?Source=%2F&Source=' + getParameterByName('Source');
-		}
+		
+			window.onload = function () {
+				auth0.show({
+					state: 		getParameterByName('Source'),
+					protocol: 	'wsfed',
+					standalone: true
+				}).on('signin_ready', function() {
+					if (!allowWindowsAuth) return;
+					if ($('#a0-widget .a0-onestep .a0-notloggedin .a0-iconlist .a0-zocial.a0-bloa0-windows.a0-primary').length > 0) return;
+					var link = $('<a class="a0-zocial a0-bloa0-windows a0-primary" href="/_windows/default.aspx?ReturnUrl=/_layouts/Authenticate.aspx?Source=%2F&Source=' + getParameterByName('Source') + '">Sign In with Windows Auth</a>');
+					link.appendTo('#a0-widget .a0-onestep .a0-notloggedin .a0-iconlist');
+					$('#a0-widget .a0-signin .a0-notloggedin .a0-separator').clone().show().insertBefore(link);
+					$('#a0-widget #a0-onestep').css('height', 'auto');
+				});
+			}
 	</script>
   </body>
 </html>

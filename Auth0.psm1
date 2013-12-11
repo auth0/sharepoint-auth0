@@ -424,8 +424,8 @@ function Enable-Auth0 {
 		return;
 	}
 
-	(new-object net.webclient).DownloadString($loginPageResourceUrl) | foreach { $_ -replace "client=[^&]*", "client=$clientId" } | foreach { if (!$allowWindowsAuth) { $_ -replace '<div class="windows">', '<div class="windows" style="display:none;">' } else { $_ } } | Set-Content .\"$clientId.aspx"
-
+	(new-object net.webclient).DownloadString($loginPageResourceUrl) | foreach { $_ -replace "YOUR_AUTH0_DOMAIN", "$auth0Domain" } | foreach { $_ -replace "YOUR_CLIENT_ID", "$clientId" } | foreach { if (!$allowWindowsAuth) { $_ -replace 'var allowWindowsAuth = true;', 'var allowWindowsAuth = false;' } else { $_ } } | Set-Content .\"$clientId.aspx"
+	
 	Copy-Item "$clientId.aspx" "$loginPageFolder\$clientId.aspx"
 
 	try {
