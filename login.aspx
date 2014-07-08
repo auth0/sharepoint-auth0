@@ -19,7 +19,11 @@
 				if (results == null) return "";
 				else return decodeURIComponent(results[1].replace(/\+/g, " "));
 			}
-	
+			
+			if (!window.location.origin) {
+				window.location.origin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
+     	}
+     	
 			var allowWindowsAuth = true;
 			var auth0 = new Auth0Widget({
 				domain:       'YOUR_AUTH0_DOMAIN',
