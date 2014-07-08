@@ -8,7 +8,7 @@
 	</head>
 	<body>
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-		<script src="https://d19p4zemcycm7a.cloudfront.net/w2/auth0-widget-2.2.min.js"></script>
+		<script src="https://cdn.auth0.com/w2/auth0-widget-2.min.js"></script>
 		
 		<script type="text/javascript">
 			function getParameterByName (name) {
