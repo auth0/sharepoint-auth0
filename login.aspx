@@ -44,6 +44,9 @@
 					link.appendTo('#a0-widget .a0-onestep .a0-notloggedin .a0-iconlist');
 					$('#a0-widget .a0-signin .a0-notloggedin .a0-separator').clone().show().insertBefore(link);
 					$('#a0-widget #a0-onestep').css('height', 'auto');
+					
+					$('#a0-widget .a0-signin .a0-notloggedin .a0-iconlist').removeClass('a0-hide');
+					$('#a0-widget .a0-signin .a0-notloggedin .a0-collapse-social > .a0-separator').removeClass('a0-hide');
 				});
 			}
 	</script>
