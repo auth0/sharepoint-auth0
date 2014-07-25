@@ -548,7 +548,7 @@ function Enable-ClaimsProvider {
 	
 	Write-Host "Done. Please, go to SharePoint Central Admin -> Security:"
 	Write-Host "1. Under General Security section, click on 'Configure Auth0 Claims Provider'"
-	Write-Host "2. Set the required configuration parameters (like domain, client ID/Secret)"
+	Write-Host "2. Set the required configuration parameters (like domain, client ID/Secret, identifier user field)"
 }
 
 function Disable-ClaimsProvider {
