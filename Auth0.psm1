@@ -515,7 +515,7 @@ function Enable-ClaimsProvider {
 	$auth0path = "$modulespath\Auth0"
 
 	$solutionName = "auth0.claimsprovider.wsp"
-	$claimsProviderInternalName = "Federated Users (Auth0)"
+	$claimsProviderInternalName = "Auth0ClaimsProvider"
 	$spSolution = Get-SPSolution $solutionName -ErrorAction SilentlyContinue
 	$wspFilePath = "$auth0path\$solutionName"
 
