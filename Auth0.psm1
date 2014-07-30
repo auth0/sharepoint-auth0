@@ -54,6 +54,29 @@ function GetCertificate {
 	$certb64;
 }
 
+function UpdateLoginUrlFromWebConfig {
+	param ($webAppUrl, $loginUrl)
+	
+	Write-Verbose "Updating web.config: /configuration/system.web/authentication/forms.loginUrl: '$loginUrl'"
+	
+	$webApp = GetWebApp ($webAppUrl)
+	$webApp.WebConfigModifications.Clear()
+	$webApp.Update();
+	
+	# create SPWebConfigModification
+	$configModFormsAuthN = New-Object Microsoft.SharePoint.Administration.SPWebConfigModification
+	$configModFormsAuthN.Path = "/configuration/system.web/authentication/forms"
+	$configModFormsAuthN.Name = "loginUrl"
+	$configModFormsAuthN.Sequence = 0
+	$configModFormsAuthN.Type = 1 # Ensure Attribute
+	$configModFormsAuthN.Value = $loginUrl
+	
+	# apply SPWebConfigModification
+	$webApp.WebConfigModifications.Add($configModFormsAuthN)
+	$webApp.Update();
+	$webApp.Parent.ApplyWebConfigModifications()
+}
+
 function IsSharePoint2013 {
 	return test-path $sharePoint2013Folder
 }
@@ -318,7 +341,7 @@ function Enable-Auth0 {
 
 		$spti.SigningCertificate = $signingCert
 		$spti.ProviderUri = $signInUrl
-		$spti.Update()  
+		$spti.Update()
 	  
 		if (-not $isStsConfigured)  {
 			if ($spti.ProviderRealms.ContainsKey($webApp.Url)) { 
@@ -340,10 +363,9 @@ function Enable-Auth0 {
 		try {
 			Write-Verbose "Adding ProviderRealms '$realm' to the webapp '$uri'" 
 			$spti.ProviderRealms.add($uri, $realm)
-			$spti.Update()  
+			$spti.Update()
 		}
-		catch {
-		}
+		catch { }
 	}
 
 	foreach ($providerRealm in $spti.ProviderRealms.GetEnumerator()) {
@@ -433,15 +455,15 @@ function Enable-Auth0 {
 		$settings.ClaimsAuthenticationRedirectionUrl = $redirectionUrl;
 		$webApp.Update();
 	}
-	catch { 
-	}
-
+	catch { }
+	
 	# backup webApp web.config
 	$webConfigPath = [io.path]::combine($settings.Path.FullName, "web.config");
 	$webconfig = [xml](get-content $webConfigPath);
 	$webconfig.Save($webConfigPath + ".backup");
-	$webconfig.configuration.'system.web'.authentication.forms.loginUrl = $redirectionUrl
-	$webconfig.Save($webConfigPath);  
+	
+	# update webApp web.config
+	UpdateLoginUrlFromWebConfig -webAppUrl $webAppUrl -loginUrl $redirectionUrl
 	
 	Write-Host "SharePoint Web Application '$webAppUrl' configured successfully with $identityTokenIssuerName."
 	
@@ -484,23 +506,21 @@ function Disable-Auth0 {
 			$spti | Remove-SPTrustedIdentityTokenIssuer; 
 		}
 	}
-
-	Write-Host "Auth0 has been uninstalled from SharePoint Web Application '$webAppUrl'"
-
+	
 	$settings = $webApp.IisSettings.get_item("Default");
 	$settings.ClaimsAuthenticationRedirectionUrl = "";
-	$webApp.Update();
-
+	$webApp.Update()
+	
+	# restore backup
 	$source = [io.path]::combine($settings.Path.FullName, "web.config")
 	$dest = [io.path]::combine($settings.Path.FullName, "web.config.auth10")
 	copy-item $source $dest
-
-	$webConfigPath = [io.path]::combine($settings.Path.FullName, "web.config");
-	$webconfig = [xml](get-content $webConfigPath);
-	$webconfig.configuration.'system.web'.authentication.forms.loginUrl = "~/_login/default.aspx"
-	$webconfig.Save($webConfigPath);  
-
+	
+	# update webApp web.config
+	UpdateLoginUrlFromWebConfig -webAppUrl $webAppUrl -loginUrl "~/_login/default.aspx"
+	
 	Write-Host "The login page now is the default page."
+	Write-Host "Auth0 has been uninstalled from SharePoint Web Application '$webAppUrl'"
 }
 
 function Enable-ClaimsProvider {
