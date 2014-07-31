@@ -449,13 +449,12 @@ function Enable-Auth0 {
 	(new-object net.webclient).DownloadString($loginPageResourceUrl) | foreach { $_ -replace "YOUR_AUTH0_DOMAIN", "$auth0Domain" } | foreach { $_ -replace "YOUR_CLIENT_ID", "$clientId" } | foreach { if (!$allowWindowsAuth) { $_ -replace 'var allowWindowsAuth = true;', 'var allowWindowsAuth = false;' } else { $_ } } | Set-Content .\"$clientId.aspx"
 	
 	Copy-Item "$clientId.aspx" "$loginPageFolder\$clientId.aspx"
-
-	try {
-		$settings = $webApp.IisSettings.get_item("Default");
-		$settings.ClaimsAuthenticationRedirectionUrl = $redirectionUrl;
-		$webApp.Update();
-	}
-	catch { }
+	
+	# set ClaimsAuthenticationRedirectionUrl
+	$webApp = GetWebApp ($webAppUrl)
+	$settings = $webApp.IisSettings.get_item("Default");
+	$settings.ClaimsAuthenticationRedirectionUrl = $redirectionUrl;
+	$webApp.Update();
 	
 	# backup webApp web.config
 	$webConfigPath = [io.path]::combine($settings.Path.FullName, "web.config");
@@ -507,6 +506,8 @@ function Disable-Auth0 {
 		}
 	}
 	
+	# set ClaimsAuthenticationRedirectionUrl
+	$webApp = GetWebApp ($webAppUrl)
 	$settings = $webApp.IisSettings.get_item("Default");
 	$settings.ClaimsAuthenticationRedirectionUrl = "";
 	$webApp.Update()
