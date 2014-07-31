@@ -500,9 +500,18 @@ function Disable-Auth0 {
 	$all = Get-SPTrustedIdentityTokenIssuer
 
 	if (-not($all -eq $null)) {
-		$spti = Get-SPTrustedIdentityTokenIssuer $identityTokenIssuerName 
-		if (-not($spti -eq $null)) { 
-			$spti | Remove-SPTrustedIdentityTokenIssuer; 
+		$spti = Get-SPTrustedIdentityTokenIssuer $identityTokenIssuerName
+		
+		if (-not($spti -eq $null)) {
+		
+			# remove webAppUrl from ProviderRealms list
+			$spti.ProviderRealms.Remove($webAppUrl);
+			
+			if ($spti.ProviderRealms.Count -eq 0) {
+				# if ProviderRealms list is empty, remove identity token issuer
+				Write-Host "Removing SPTrustedIdentityTokenIssuer '$identityTokenIssuerName'"
+				$spti | Remove-SPTrustedIdentityTokenIssuer
+			}
 		}
 	}
 	
