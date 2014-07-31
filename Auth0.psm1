@@ -1,6 +1,5 @@
 # global constants
 $identityTokenIssuerName = "Auth0"
-$sharePoint2013Folder =  "$env:ProgramFiles\Common Files\Microsoft Shared\Web Server Extensions\15"
 	
 # helpers
 function GetFederationMetadata { 
@@ -78,7 +77,8 @@ function UpdateLoginUrlFromWebConfig {
 }
 
 function IsSharePoint2013 {
-	return test-path $sharePoint2013Folder
+	$SPFarm = Get-SPFarm
+	return $SPFarm.BuildVersion.Major -eq 15
 }
 
 function ValidCommonChecks {
