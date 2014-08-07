@@ -9,7 +9,7 @@
 	</head>
 	<body>
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-		<script src="https://cdn.auth0.com/w2/auth0-widget-4.1.1.min.js"></script>
+		<script src="https://cdn.auth0.com/w2/auth0-widget-5.1.min.js"></script>
 		
 		<script type="text/javascript">
 			function getParameterByName (name) {
@@ -40,7 +40,7 @@
 				}).on('signin_ready', function() {
 					if (!allowWindowsAuth) return;
 					if ($('#a0-widget .a0-onestep .a0-notloggedin .a0-iconlist .a0-zocial.a0-block.a0-windows.windows-auth').length > 0) return;
-					var link = $('<a class="a0-zocial a0-block a0-windows windows-auth" href="/_windows/default.aspx?ReturnUrl=/_layouts/Authenticate.aspx?Source=%2F&Source=' + getParameterByName('Source') + '"><span>Sign In with Windows Auth</span></a>');
+					var link = $('<a class="a0-zocial a0-block a0-windows windows-auth" href="/_windows/default.aspx?ReturnUrl=' + getParameterByName('ReturnUrl') + '&Source=' + getParameterByName('Source') + '"><span>Sign In with Windows Auth</span></a>');
 					link.appendTo('#a0-widget .a0-onestep .a0-notloggedin .a0-iconlist');
 					$('#a0-widget .a0-signin .a0-notloggedin .a0-separator').clone().show().insertBefore(link);
 					$('#a0-widget #a0-onestep').css('height', 'auto');
